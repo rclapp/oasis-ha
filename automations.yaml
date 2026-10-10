@@ -1,24 +1,33 @@
-# On Air button (ZHA): single press turns the light on, double press turns it off.
-# The button is matched through its firmware update entity, so no device ID or
-# IEEE address needs to be hard-coded.
+# On Air button (Samjin, ZHA quirk zhaquirks.samjin.button:SamjinButton):
+# single press turns the light on, double press turns it off.
 - id: on_air_button_light_toggle
   alias: On Air button - light on/off
   mode: queued
   triggers:
     - trigger: event
       event_type: zha_event
-  conditions:
-    - condition: template
-      value_template: >
-        {{ trigger.event.data.device_id == device_id('update.on_air_button_firmware') }}
+      event_data:
+        device_ieee: "28:6d:97:00:01:13:e7:45"
+        command: button_single
+      id: single
+    - trigger: event
+      event_type: zha_event
+      event_data:
+        device_ieee: "28:6d:97:00:01:13:e7:45"
+        command: button_double
+      id: double
   actions:
     - choose:
-        - conditions: "{{ trigger.event.data.params.press_type == 'single' }}"
+        - conditions:
+            - condition: trigger
+              id: single
           sequence:
             - action: light.turn_on
               target:
                 entity_id: light.your_light # TODO: replace with your light
-        - conditions: "{{ trigger.event.data.params.press_type == 'double' }}"
+        - conditions:
+            - condition: trigger
+              id: double
           sequence:
             - action: light.turn_off
               target:
