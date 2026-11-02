@@ -33,18 +33,18 @@
               target:
                 entity_id: light.your_light # TODO: replace with your light
 
-# Pause main-floor HVAC while the front door is held open, then resume it.
+# Pause main-floor HVAC while the patio door is held open, then resume it.
 # Only acts if the HVAC was running when the door opened; if it was already
 # off, nothing happens and nothing is turned back on.
-- id: front_door_open_pause_main_floor_hvac
-  alias: Front door open - pause main floor HVAC
+- id: patio_door_open_pause_main_floor_hvac
+  alias: Patio door open - pause main floor HVAC
   mode: single
   variables:
-    door: binary_sensor.front_door_door # TODO: August DoorSense entity
-    thermostat: climate.main_floor # TODO: main floor Ecobee entity
+    door: binary_sensor.patio_door_open
+    thermostat: climate.main_floor
   triggers:
     - trigger: state
-      entity_id: binary_sensor.front_door_door # TODO: same as `door` above
+      entity_id: binary_sensor.patio_door_open
       to: "on"
       for: "00:01:00"
   conditions:
