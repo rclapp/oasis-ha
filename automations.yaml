@@ -32,3 +32,39 @@
             - action: light.turn_off
               target:
                 entity_id: light.your_light # TODO: replace with your light
+
+# Pause main-floor HVAC while the front door is held open, then resume it.
+# Only acts if the HVAC was running when the door opened; if it was already
+# off, nothing happens and nothing is turned back on.
+- id: front_door_open_pause_main_floor_hvac
+  alias: Front door open - pause main floor HVAC
+  mode: single
+  variables:
+    door: binary_sensor.front_door_door # TODO: August DoorSense entity
+    thermostat: climate.main_floor # TODO: main floor Ecobee entity
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.front_door_door # TODO: same as `door` above
+      to: "on"
+      for: "00:01:00"
+  conditions:
+    - condition: template
+      value_template: "{{ states(thermostat) not in ['off', 'unavailable', 'unknown'] }}"
+  actions:
+    # Remember the mode for this run only (heat, cool or heat_cool) so the
+    # same one is restored when the door closes.
+    - variables:
+        resume_mode: "{{ states(thermostat) }}"
+    - action: climate.set_hvac_mode
+      target:
+        entity_id: "{{ thermostat }}"
+      data:
+        hvac_mode: "off"
+    # A template wait also passes if the door closed while the HVAC was
+    # being switched off.
+    - wait_template: "{{ is_state(door, 'off') }}"
+    - action: climate.set_hvac_mode
+      target:
+        entity_id: "{{ thermostat }}"
+      data:
+        hvac_mode: "{{ resume_mode }}"
